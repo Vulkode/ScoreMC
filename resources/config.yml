@@ -1,0 +1,17 @@
+enable-hud: false
+interval-time: 20
+worlds:
+- world
+titles:
+- §a§lWellcome
+- §b§lServer MC
+- §c§lTitle MC
+- §e§lServer MC
+lines:
+- "§5Player: {rainbow}{player}"
+- "§5World: §6{world}"
+- "§5Online: §a{online} §f/ §1{players}"
+- "§dTPS: {rainbow}{tps}"
+- "§dMoney: §e{money}"
+- "§dRank: §e{rank}"
+- "§f§o{item_name}"
