@@ -1,5 +1,5 @@
 # ScoreMC
-Score hud para servidores de minecraft pe (bedrock edition)
+Scoreboard for pocketmine - minecraft bedrock edition
 
 ## API
 
@@ -10,8 +10,8 @@ use ScoreMC\ScoreMC;
 
 Add function in your plugin
 ```
-ScoreMC::createScore(Player $player, string $title, int $sortOrder, string $displaySlot);
-ScoreMC::setScoreLines(Player $player, array $messages, bool $translate);
+ScoreMC::getInstance()->createScore(Player $player, string $title, int $sortOrder, string $displaySlot);
+ScoreMC::getInstance()->setScoreLines(Player $player, array $messages, bool $translate);
 ```
 
 ### Prefix
