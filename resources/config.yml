@@ -1,17 +1,40 @@
-enable-hud: false
+---
+# UPDATE TIME OF TASK: 20 = 1 SEG
 interval-time: 20
+
+# ALLOW WORLDS ON RUN TITLES
 worlds:
-- world
-titles:
-- §a§lWellcome
-- §b§lServer MC
-- §c§lTitle MC
-- §e§lServer MC
-lines:
-- "§5Player: {rainbow}{player}"
-- "§5World: §6{world}"
-- "§5Online: §a{online} §f/ §1{players}"
-- "§dTPS: {rainbow}{tps}"
-- "§dMoney: §e{money}"
-- "§dRank: §e{rank}"
-- "§f§o{item_name}"
+  world:
+    title:
+    - '&fserver title'
+    - '&aserver title'
+    lines:
+    - '&7Player: &3{RAINBOW}{PLAYER}'
+    - '&7Online: &3{ONLINE_PLAYERS}'
+    - '&7World Name: &3{WORLD_NAME}'
+    - '&7World Player: &3{WORLD_PLAYERS}'
+    - '&7Player X: &a{PLAYER_X}'
+    - '&7Player Y: &a{PLAYER_Y}'
+    - '&7Player Z: &a{PLAYER_Z}'
+  world2:
+    title:
+    - '&fserver title'
+    - '&aserver title'
+    lines:
+    - '&7Player: &3{RAINBOW}{PLAYER}'
+    - '&7Online: &3{ONLINE_PLAYERS}'
+    - '&7World Name: &3{WORLD_NAME}'
+    - '&7Money: &a{MONEY}'
+    - '&7RANK: &a{RANK}'
+
+# DEFAULT TITLE IF EMPTY WORLDS
+default:
+  title:
+  - '&bserver title'
+  - '&aserver title'
+  lines:
+  - '&7Player: &3{PLAYER}'
+  - '&7Online: &3{ONLINE_PLAYERS}'
+  - '&7World Name: &3{WORLD_NAME}'
+  - '&7World Player: &3{WORLD_PLAYERS}'
+...

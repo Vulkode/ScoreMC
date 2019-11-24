@@ -2,17 +2,16 @@
 
 namespace ScoreMC;
 
-use pocketmine\Server;
 use pocketmine\Player;
-use pocketmine\utils\Config;
 use pocketmine\plugin\PluginBase;
+use ScoreMC\ScoreTask\ScoreTask;
 use pocketmine\utils\TextFormat as TE;
+use ScoreMC\Event\LevelChangeEvent;
 use pocketmine\network\mcpe\protocol\RemoveObjectivePacket;
 use pocketmine\network\mcpe\protocol\SetDisplayObjectivePacket;
 use pocketmine\network\mcpe\protocol\SetScorePacket;
 use pocketmine\network\mcpe\protocol\types\ScorePacketEntry;
-use ScoreMC\ScoreHud\ScoreHud;
-use ScoreMC\ScoreTemp\ScoreTemp;
+
 
 class ScoreMC extends PluginBase{
 	
@@ -23,72 +22,48 @@ class ScoreMC extends PluginBase{
 
 	/** @var string[] */
 	private static $scoreboard = [];
-	private static $scoretemps = [];
+
+	/** @var ScoreMC */
+	private static $plugin;
 
 	/**
 	* @return void
-	* @author SharpyKurth
+	* @author ßenja
 	* # PROHIBIDO ELIMINAR EL AUTHOR DEL PLUGIN, SI MODIFICAS AGREGA TU NOMBRE SIN BORRAR EL AUTHOR RESPECTIVO!
 	*/
-	public function onEnable() : void {
-		$this->getScheduler()->scheduleRepeatingTask(new ScoreHud($this), $this->getConfig()->get("update-time", 20));
-		$this->getLogger()->info(TE::GREEN."Enabled Plugin! Make by @DarkByx");
+	public function onEnable() : void{
+		static::$plugin = $this;
+		$this->saveDefaultConfig();
+		$this->getServer()->getPluginManager()->registerEvents(new LevelChangeEvent($this), $this);
+		$this->getScheduler()->scheduleRepeatingTask(new ScoreTask($this), $this->getConfig()->get("update-time", 20));
+		$this->getLogger()->info(TE::DARK_PURPLE."Enabled!");
+		$this->getLogger()->info(TE::DARK_PURPLE.base64_decode("DQogICAgIF9fX19fICAgICAgICAgICAgICAgIF9fX19fICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIF9fX19fICAgICAgICAgICAgIA0KICBfX3xfX18gIHxfXyBfXyAgICBfICBfX3xfX18gIHxfXyAgX19fX18gIF9fX19fICAgX19fX19fICBfX3xfX18gIHxfXyAgX19fX19fICANCiB8ICAgICAgPiAgICB8XCBcICAvLyB8ICAgX19ffCAgICB8LyAgICAgXHwgICAgIFwgfCAgIF9fX3x8ICAgICAgPiAgICB8fF9fXyAgIHwgDQogfCAgICAgPCAgICAgfCBcIFwvLyAgfCAgIHxfXyAgICAgfHwgICAgIHx8ICAgICAgXHwgICBfX198fCAgICAgPCAgICAgfHxfX18gICB8IA0KIHxfX19fX18+ICBfX3wgL19fLyAgIHxfX19fX198ICBfX3xcX19fX18vfF9fX19fXy98X19fX19ffHxfX19fX18+ICBfX3x8X19fX19ffCANCiAgICB8X19fX198ICAgICAgICAgICAgICB8X19fX198ICAgICAgICAgICAgICAgICAgICAgICAgICAgICB8X19fX198ICAgICAgICAgICAgDQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIA=="));
 	}
 
 	/**
-	* @param Player $player
-	* @param string $title
-	* @param mixed  $plugin
-	* @return null|ScoreTemp
+	* @return ScoreMC
 	*/
-	public static function createTempScore(Player $player, string $title, $plugin = null) : ?ScoreTemp {
-		if (isset(self::$scoretemps[$player->getName()])) {
-			$score = self::$scoretemps[$player->getName()];
-			if ($score instanceof ScoreTemp) {
-				if ($score->getOwner() === $plugin and $score->isExpired() == false) {
-					return $score;
-				}
-			}
-			return null;
-		}
-		$score = new ScoreTemp($plugin);
-		self::$scoretemps[$player->getName()] = $score;
-		return $score;
+	public function getInstance() : ScoreMC{
+		return static::$plugin;
 	}
 
 	/**
 	* @param Player $player
-	* @return null|ScoreTemp
-	*/
-	public static function getTempScore(Player $player) : ?ScoreTemp {
-		return isset(self::$scoretemps[$player->getName()]) ? self::$scoretemps[$player->getName()] : null;
-	}
-
-	/**
-	* @param Player $player
+	* @param string $displayName
+	* @param int    $sortOrder
+	* @param string $displaySlot
 	* @return void
 	*/
-	public static function removeTempScore(Player $player) : void {
-		unset(self::$scoretemps[$player->getName()]);
-	}
-
-	/**
-	* @param Player $player
-	* @param string $title
-	* @param int    $sortorder
-	* @param string $displayslot
-	* @return null|ScoreTemp
-	*/
-	public static function createScore(Player $player, string $title, int $sortorder = 0, string $displayslot = "sidebar") : void {
+	public function createScore(Player $player, string $displayName, int $sortOrder = 0, string $displaySlot = "sidebar") : void{
 		if(isset(self::$scoreboard[$player->getName()])){
-			self::removeScore($player);
+			$this->removeScore($player);
 		}
 		$packet = new SetDisplayObjectivePacket();
-		$packet->displaySlot = $displayslot;
+		$packet->displaySlot = $displaySlot;
 		$packet->objectiveName = "objective";
-		$packet->displayName = $title;
+		$packet->displayName = $displayName;
 		$packet->criteriaName = "dummy";
-		$packet->sortOrder = $sortorder;
+		$packet->sortOrder = $sortOrder;
 		$player->sendDataPacket($packet);
 		self::$scoreboard[$player->getName()] = $player->getName();
 	}
@@ -97,10 +72,9 @@ class ScoreMC extends PluginBase{
 	* @param Player $player
 	* @return void
 	*/
-	public static function removeScore(Player $player) : void {
-		$objectiveName = "objective";
+	public function removeScore(Player $player) : void{
 		$packet = new RemoveObjectivePacket();
-		$packet->objectiveName = $objectiveName;
+		$packet->objectiveName = "objective";
 		$player->sendDataPacket($packet);
 		unset(self::$scoreboard[$player->getName()]);
 	}
@@ -108,22 +82,28 @@ class ScoreMC extends PluginBase{
 	/**
 	* @param Player $player
 	* @param int    $line
-	* @param string $message
-	* @return void
+	* @param string $customName
+	* @return bool
 	*/
-	public static function setScoreLine(Player $player, int $line, string $message) : void {
-		if(!isset(self::$scoreboard[$player->getName()])) return;
-		if($line <= 0 or $line > 15) return;
-		$pk = new ScorePacketEntry();
-		$pk->objectiveName = "objective";
-		$pk->type = $pk::TYPE_FAKE_PLAYER;
-		$pk->customName = $message;
-		$pk->score = $line;
-		$pk->scoreboardId = $line;
+	public function setScoreLine(Player $player, int $line, string $customName) : void{
+		if(!isset(self::$scoreboard[$player->getName()])) {
+			return;
+		}
+
+		if($line <= 0 or $line > 15) {
+			return;
+		}
+
+		$pkline = new ScorePacketEntry();
+		$pkline->objectiveName = "objective";
+		$pkline->type = ScorePacketEntry::TYPE_FAKE_PLAYER;
+		$pkline->customName = $customName;
+		$pkline->score = $line;
+		$pkline->scoreboardId = $line;
 		
 		$packet = new SetScorePacket();
-		$packet->type = $packet::TYPE_CHANGE;
-		$packet->entries[] = $pk;
+		$packet->type = SetScorePacket::TYPE_CHANGE;
+		$packet->entries[] = $pkline;
 		$player->sendDataPacket($packet);
 	}
 
@@ -132,11 +112,85 @@ class ScoreMC extends PluginBase{
 	* @param array  $messages
 	* @return void
 	*/
-	public static function setScoreLines(Player $player, array $messages) : void {
+	public function setScoreLines(Player $player, array $messages, bool $translate = false) : void{
 		$line = 1;
 		foreach ($messages as $message) {
-			self::setScoreLine($player, $line, $message);
+			if ($translate) {
+				self::setScoreLine($player, $line, $this->translate($player, $message));
+			}else{
+				self::setScoreLine($player, $line, $message);
+			}
 			$line++;
 		}
+	}
+
+	/**
+	* @param Player $player
+	* @param string $message
+	* @return string
+	*/
+	public function translate(Player $player, string $message) : string{
+		# PLAYER INFO
+		$message = str_replace('{PING}', $player->getPing(), $message);
+		$message = str_replace('{PLAYER}', $player->getName(), $message);
+		$message = str_replace('{PLAYER_X}', $player->getFloorX(), $message);
+		$message = str_replace('{PLAYER_Y}', $player->getFloorY(), $message);
+		$message = str_replace('{PLAYER_Z}', $player->getFloorZ(), $message);
+
+		# WORLD INFO
+		$level = $player->getLevel();
+		$message = str_replace('{WORLD_NAME}', $level->getFolderName(), $message);
+		$message = str_replace('{WORLD_PLAYERS}', count($level->getPlayers()), $message);
+		
+		# SERVER INFO
+		$message = str_replace('{TICKS}', $this->getServer()->getTickUsage(), $message);
+		$message = str_replace('{TPS}', $this->getServer()->getTicksPerSecond(), $message);
+		$message = str_replace('{ONLINE_PLAYERS}', count($this->getServer()->getOnlinePlayers()), $message);
+
+		# OTHER INFO
+		$message = str_replace("{TIME}", date("H:i a"), $message);
+		$message = str_replace("{RAINBOW}", $this->getColor(), $message);
+
+		# PLUGIN INFO
+		$message = $this->reviewAllPlugins($player, $message);
+		return TE::colorize((string) $message);
+	}
+
+	/**
+	* @return string
+	*/
+	public function getColor() : string{
+		$colors = [TE::DARK_BLUE, TE::DARK_GREEN, TE::DARK_AQUA, TE::DARK_RED, TE::DARK_PURPLE, TE::GOLD, TE::GRAY, TE::DARK_GRAY, TE::BLUE, TE::GREEN, TE::AQUA, TE::RED, TE::LIGHT_PURPLE, TE::YELLOW, TE::WHITE];
+		return $colors[rand(0,14)];
+	}
+
+	/**
+	* @param Player $player
+	* @param string $message
+	* @return string
+	*/
+	private function reviewAllPlugins(Player $player, string $message) : string{
+		$PurePerms = $this->getServer()->getPluginManager()->getPlugin("PurePerms");
+		if (!is_null($PurePerms)) {
+			$message = str_replace('{RANK}', $PurePerms->getUserDataMgr()->getGroup($player)->getName(), $message);
+			$message = str_replace('{PREFIX}', $PurePerms->getUserDataMgr()->getNode($player, "prefix"), $message);
+			$message = str_replace('{SUFFIX}', $PurePerms->getUserDataMgr()->getNode($player, "suffix"), $message);
+		}
+
+		$EconomyAPI = $this->getServer()->getPluginManager()->getPlugin("EconomyAPI");
+		if (!is_null($EconomyAPI)) {
+			$message = str_replace('{MONEY}', $EconomyAPI->myMoney($player), $message);
+		}
+
+		$FactionsPro = $this->getServer()->getPluginManager()->getPlugin("FactionsPro");
+		if(!is_null($FactionsPro)){
+			$message = str_replace('{FACTION}', $FactionsPro->getPlayerFaction($player->getName()), $message);
+		}
+
+		$MoneySystem = $this->getServer()->getPluginManager()->getPlugin("MoneySystem");
+		if (!is_null($MoneySystem)) {
+			$message = str_replace('{MONEY}', $MoneySystem->getMoney($player), $message);
+		}
+		return $message;
 	}
 }
