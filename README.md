@@ -43,8 +43,8 @@ valores predeterminados:
 ```PHP
 
 public function sendHud($player) {
-	ScoreMC::createScore($player, 'My Score Hub');
-	ScoreMC::setScoreLines($player, ["My line 1", "My line 2"]);
+	ScoreMC::getInstance()->createScore($player, 'My Score Hub');
+	ScoreMC::getInstance()->setScoreLines($player, ["My line 1", "My line 2"]);
 }
 
 ```
