@@ -5,9 +5,10 @@ interval-time: 20
 # ALLOW WORLDS ON RUN TITLES
 worlds:
   world:
+    sortOrder: 0
     title:
-    - '&fserver title'
-    - '&aserver title'
+    - '&fServer Title'
+    - '&aServer Title'
     lines:
     - '&7Player: &3{RAINBOW}{PLAYER}'
     - '&7Online: &3{ONLINE_PLAYERS}'
@@ -17,9 +18,10 @@ worlds:
     - '&7Player Y: &a{PLAYER_Y}'
     - '&7Player Z: &a{PLAYER_Z}'
   world2:
+    sortOrder: 0
     title:
-    - '&fserver title'
-    - '&aserver title'
+    - '&fServer Title'
+    - '&eServer Title'
     lines:
     - '&7Player: &3{RAINBOW}{PLAYER}'
     - '&7Online: &3{ONLINE_PLAYERS}'
@@ -29,9 +31,10 @@ worlds:
 
 # DEFAULT TITLE IF EMPTY WORLDS
 default:
+  sortOrder: 0
   title:
-  - '&bserver title'
-  - '&aserver title'
+  - '&bServer Title'
+  - '&eServer Title'
   lines:
   - '&7Player: &3{PLAYER}'
   - '&7Online: &3{ONLINE_PLAYERS}'

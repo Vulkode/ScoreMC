@@ -1,5 +1,5 @@
 name: ScoreMC
 main: ScoreMC\ScoreMC
 author: ['CodeB3', 'ßenja']
-version: 1.3.0
+version: 1.3.5
 api: [3.0.0, 4.0.0]

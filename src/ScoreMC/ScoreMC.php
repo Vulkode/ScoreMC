@@ -43,7 +43,7 @@ class ScoreMC extends PluginBase{
 	/**
 	* @return ScoreMC
 	*/
-	public function getInstance() : ScoreMC{
+	public static function getInstance() : ScoreMC{
 		return static::$plugin;
 	}
 
@@ -54,13 +54,13 @@ class ScoreMC extends PluginBase{
 	* @param string $displaySlot
 	* @return void
 	*/
-	public function createScore(Player $player, string $displayName, int $sortOrder = 0, string $displaySlot = "sidebar") : void{
+	public function createScore(Player $player, string $displayName, int $sortOrder = 0, string $displaySlot = self::SIDEBAR) : void{
 		if(isset(self::$scoreboard[$player->getName()])){
 			$this->removeScore($player);
 		}
 		$packet = new SetDisplayObjectivePacket();
 		$packet->displaySlot = $displaySlot;
-		$packet->objectiveName = "objective";
+		$packet->objectiveName = $player->getName();
 		$packet->displayName = $displayName;
 		$packet->criteriaName = "dummy";
 		$packet->sortOrder = $sortOrder;
@@ -74,7 +74,7 @@ class ScoreMC extends PluginBase{
 	*/
 	public function removeScore(Player $player) : void{
 		$packet = new RemoveObjectivePacket();
-		$packet->objectiveName = "objective";
+		$packet->objectiveName = $player->getName();
 		$player->sendDataPacket($packet);
 		unset(self::$scoreboard[$player->getName()]);
 	}
@@ -85,26 +85,24 @@ class ScoreMC extends PluginBase{
 	* @param string $customName
 	* @return bool
 	*/
-	public function setScoreLine(Player $player, int $line, string $customName) : void{
+	public function setScoreLine(Player $player, int $line, string $message, bool $translate = false) : void{
 		if(!isset(self::$scoreboard[$player->getName()])) {
 			return;
 		}
-
 		if($line <= 0 or $line > 15) {
 			return;
 		}
 
-		$pkline = new ScorePacketEntry();
-		$pkline->objectiveName = "objective";
-		$pkline->type = ScorePacketEntry::TYPE_FAKE_PLAYER;
-		$pkline->customName = $customName;
-		$pkline->score = $line;
-		$pkline->scoreboardId = $line;
-		
-		$packet = new SetScorePacket();
-		$packet->type = SetScorePacket::TYPE_CHANGE;
-		$packet->entries[] = $pkline;
-		$player->sendDataPacket($packet);
+		if ($translate) {
+			$message = $this->translate($player, $message);
+		}
+		$packet = new ScorePacketEntry();
+		$packet->objectiveName = $player->getName();
+		$packet->type = ScorePacketEntry::TYPE_FAKE_PLAYER;
+		$packet->customName = $message;
+		$packet->score = $line;
+		$packet->scoreboardId = $line;
+		$this->sendPacketLine($player, [$packet]);
 	}
 
 	/**
@@ -113,15 +111,32 @@ class ScoreMC extends PluginBase{
 	* @return void
 	*/
 	public function setScoreLines(Player $player, array $messages, bool $translate = false) : void{
-		$line = 1;
+		$score = 0;
+		$entries = [];
 		foreach ($messages as $message) {
 			if ($translate) {
-				self::setScoreLine($player, $line, $this->translate($player, $message));
-			}else{
-				self::setScoreLine($player, $line, $message);
+				$message = $this->translate($player, $message);
 			}
-			$line++;
+			$packet = new ScorePacketEntry();
+			$packet->objectiveName = $player->getName();
+			$packet->type = ScorePacketEntry::TYPE_FAKE_PLAYER;
+			$packet->customName = $message;
+			$packet->score = $score++;
+			$packet->scoreboardId = $score;
+			$entries[] = $packet;
 		}
+		$this->sendPacketLine($player, $entries);
+	}
+
+	/**
+	* @param Player $player
+	* @param array  $entries
+	*/
+	private function sendPacketLine(Player $player, array $entries) : void{
+		$packet = new SetScorePacket();
+		$packet->type = SetScorePacket::TYPE_CHANGE;
+		$packet->entries = $entries;
+		$player->sendDataPacket($packet);
 	}
 
 	/**

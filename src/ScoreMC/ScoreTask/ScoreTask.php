@@ -55,7 +55,7 @@ class ScoreTask extends Task {
 	*/
 	public function prepareHud(array $players, array $config_title) : void{
 		foreach ($players as $player) {
-			$this->broadcastHud($player, $config_title['title'], $config_title['lines']);
+			$this->broadcastHud($player, $config_title['title'], $config_title['lines'], (int) $config_title['sortOrder']);
 		}
 	}
 
@@ -63,10 +63,11 @@ class ScoreTask extends Task {
 	* @param Player $player
 	* @param array $titles
 	* @param array $lines
+	* @param int   $sortOrder
 	*/
-	public function broadcastHud(Player $player, array $titles, array $lines) : void{
+	public function broadcastHud(Player $player, array $titles, array $lines, int $sortOrder) : void{
 		$title = $this->getTitle($titles);
-		$this->plugin->createScore($player, $this->plugin->translate($player, $title));
+		$this->plugin->createScore($player, $this->plugin->translate($player, $title), $sortOrder);
 		$this->plugin->setScoreLines($player, $lines, true);
 	}
 
