@@ -28,7 +28,7 @@ class ScoreMC extends PluginBase{
 
 	/**
 	* @return void
-	* @author ßenja
+	* @author KaruMc
 	* # PROHIBIDO ELIMINAR EL AUTHOR DEL PLUGIN, SI MODIFICAS AGREGA TU NOMBRE SIN BORRAR EL AUTHOR RESPECTIVO!
 	*/
 	public function onEnable() : void{
@@ -36,8 +36,7 @@ class ScoreMC extends PluginBase{
 		$this->saveDefaultConfig();
 		$this->getServer()->getPluginManager()->registerEvents(new LevelChangeEvent($this), $this);
 		$this->getScheduler()->scheduleRepeatingTask(new ScoreTask($this), $this->getConfig()->get("update-time", 20));
-		$this->getLogger()->info(TE::DARK_PURPLE."Enabled!");
-		$this->getLogger()->info(TE::DARK_PURPLE.base64_decode("DQogICAgIF9fX19fICAgICAgICAgICAgICAgIF9fX19fICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIF9fX19fICAgICAgICAgICAgIA0KICBfX3xfX18gIHxfXyBfXyAgICBfICBfX3xfX18gIHxfXyAgX19fX18gIF9fX19fICAgX19fX19fICBfX3xfX18gIHxfXyAgX19fX19fICANCiB8ICAgICAgPiAgICB8XCBcICAvLyB8ICAgX19ffCAgICB8LyAgICAgXHwgICAgIFwgfCAgIF9fX3x8ICAgICAgPiAgICB8fF9fXyAgIHwgDQogfCAgICAgPCAgICAgfCBcIFwvLyAgfCAgIHxfXyAgICAgfHwgICAgIHx8ICAgICAgXHwgICBfX198fCAgICAgPCAgICAgfHxfX18gICB8IA0KIHxfX19fX18+ICBfX3wgL19fLyAgIHxfX19fX198ICBfX3xcX19fX18vfF9fX19fXy98X19fX19ffHxfX19fX18+ICBfX3x8X19fX19ffCANCiAgICB8X19fX198ICAgICAgICAgICAgICB8X19fX198ICAgICAgICAgICAgICAgICAgICAgICAgICAgICB8X19fX198ICAgICAgICAgICAgDQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIA=="));
+		$this->getLogger()->info(TextFormat::DARK_PURPLE."The plugin was created by KaruMC!");
 	}
 
 	/**
